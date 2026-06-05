@@ -1,152 +1,162 @@
-# ░▒▓ ASCII CANVAS ▓▒░
-### *A terminal graphics editor written in C — because pixels are overrated.*
+# ░▒▓ ASCII CANVAS v2 ▓▒░
+### *Now with memory. Your shapes don't disappear anymore.*
 
 ```
 +--------------------------------------------------------------------------------+
-|  ____________________________*_______________________                          |
-|  _______________________*_________*__________________                          |
-|  ___________*__________/ \________/ \________________                          |
-|  __________/ \________/   \______/   \_______________                          |
-|  _________/   \______/     \____/     \______________   ← your masterpiece     |
-|  ________/     \____/       \__/       \*____________                          |
-|  _______*_______\__/    *    \/    *    \____________                          |
+|  _____*********************____________________________________________________  |
+|  _____*____***____________*____________*****___________________________________  |
+|  _____*_______***_________*___________*_____*__________________________________  |
+|  _____*__________***______*__________*_______*_________________________________  |
+|  _____*_____________**____*_________*_________*________________________________  |
+|  _____*___________________*_________*_________*________________________________  |
+|  _____*********************_________*_________*________________________________  |
+|  ____________________________________*_______*_________________________________  |
 +--------------------------------------------------------------------------------+
 ```
 
 ---
 
-## What is this?
+## What changed in v2?
 
-A 2D graphics editor that runs entirely in your terminal. No GPU. No OpenGL. No 500MB framework. Just a `char` array, some clever integer math, and your imagination.
+v1 drew shapes directly onto the canvas and forgot them immediately.
 
-You draw shapes. They appear as `*` characters on an `80×24` canvas. That's the whole deal.
+v2 introduces an **object list** — every shape you add is stored in memory with its type and coordinates. The canvas is rebuilt from scratch every time you display it, by replaying all stored objects. This means you can add multiple shapes, delete one, and the rest remain intact.
 
----
-
-## Features
-
-| Shape | Algorithm used |
-|---|---|
-| Line | Bresenham's Line Algorithm (integer-only, gap-free) |
-| Rectangle | Four calls to `drawLine` |
-| Circle | Midpoint Circle Algorithm (8-way symmetry) |
-| Triangle | Three calls to `drawLine` |
-
-**Why Bresenham?**
-Because `y = mx + b` with floats gives you ugly gaps and rounding errors. Bresenham's works entirely in integers — the same algorithm that was used to drive CRT electron guns in the 1960s. Your terminal deserves that heritage.
-
-**Why the Midpoint Circle?**
-Computing `sin`/`cos` for every pixel is slow and wasteful. The midpoint algorithm figures out one octant and mirrors it across all 8 — 8× the output for the same work.
+| Feature | v1 | v2 |
+|---|---|---|
+| Menu structure | Draw directly | Add / Delete / Modify / Display / List |
+| Shape memory | ❌ None | ✅ Object array (up to 100) |
+| Delete a shape | ❌ Impossible | ✅ By index |
+| Modify a shape | ❌ Impossible | ✅ By index |
+| List all objects | ❌ | ✅ |
+| Canvas rendering | Immediate | On-demand (option 4) |
 
 ---
 
 ## Build & Run
 
 ```bash
-# Compile
 gcc -o canvas main.c -lm
-
-# Run
 ./canvas
 ```
 
-> Requires a C compiler (gcc/clang) and a terminal that's at least 82 columns wide.
-
 ---
 
-## Usage
+## Menu
 
 ```
-2D ASCII Graphics Editor
+2D Graphics Editor
 Canvas size: 80 x 24
-x range: 0 to 79
-y range: 0 to 23
+1. Add object
+2. Delete object
+3. Modify object
+4. Display picture
+5. List objects
+0. Exit
+Enter choice:
+```
 
---- Menu ---
+### 1. Add Object
+
+Prompts a shape sub-menu, then takes coordinates:
+
+```
+Choose shape type:
 1. Line
 2. Rectangle
 3. Circle
 4. Triangle
-5. Display
-6. Clear
-0. Exit
+Enter shape type:
 ```
 
-Coordinates start at `(0, 0)` in the **top-left** corner.
-`x` goes right → and `y` goes down ↓.
+| Shape | Input format |
+|---|---|
+| Line | `x1 y1 x2 y2` |
+| Rectangle | `top-left x y` → `bottom-right x y` |
+| Circle | `center x y radius` |
+| Triangle | `x1 y1 x2 y2 x3 y3` |
 
-### Example session
-
+Each added shape gets an index starting from `0`:
 ```
-Choice: 3
-Center x y, radius: 39 11 8
-Circle drawn.
-
-Choice: 2
-Top-left x y, bottom-right x y: 30 3 50 20
-Rectangle drawn.
-
-Choice: 5
-The picture is:
-+---[canvas renders here]---+
+Object added with index 0.
+Object added with index 1.
 ```
+
+### 2. Delete Object
+
+Enter the index to remove. Remaining objects shift down to fill the gap.
+
+### 3. Modify Object
+
+Enter an index, pick a new shape type, re-enter coordinates. The slot is updated in-place.
+
+### 4. Display Picture
+
+Clears the canvas, replays all stored objects, and prints the 80×24 grid.
+
+### 5. List Objects
+
+Prints a summary of every stored shape with its index and parameters.
 
 ---
 
-## Project Structure
-
-```
-.
-└── main.c          # Everything. One file. Old school.
-```
-
-This is C. We don't need a `src/`, `lib/`, `dist/`, `node_modules/`, or a config file named after a planet.
-
----
-
-## Canvas Coordinate System
+## Coordinate System
 
 ```
 (0,0) ──────────────────► x  (79)
   │
-  │        your art lives here
+  │        canvas lives here
   │
   ▼
   y
 (23)
 ```
 
----
-
-## Known Limitations (aka *features*)
-
-- The canvas does **not** auto-display after drawing. Call option `5` yourself — this is not a GUI babysitter.
-- Overlapping shapes overwrite each other. No layers. No undo. Commit to your art.
-- Canvas is `char` array in stack memory. It will not survive a power cut.
-- Circles look slightly squished. Terminal characters are taller than they are wide. This is a terminal problem, not a math problem.
+Origin is **top-left**. x goes right, y goes down.
 
 ---
 
-## The Philosophy
+## Algorithms
 
-> *"Any fool can use a computer. Many do."*
-> — Ted Nelson
+**Lines → Bresenham's Line Algorithm**
+Integer-only. Handles all slopes. No gaps. The same algorithm used to drive CRT electron guns in 1962.
 
-This project exists at the intersection of:
-- **Low-level C** — direct memory, no abstractions
-- **Classical algorithms** — Bresenham (1962), Midpoint Circle (1967)
-- **Constraints as creativity** — 80 columns, 24 rows, two characters
+**Circles → Midpoint Circle Algorithm**
+Computes one octant, mirrors across all 8. 8× output for the same math. No `sin`/`cos` needed.
 
-No dependencies. No build system. No bloat. Just `gcc main.c` and a blinking cursor.
+**Rectangles → 4× `drawLine`**
+Top, right, bottom, left edges.
 
----
-
-## Author
-
-Built for **REVA University** C Programming coursework.
-Written by hand. Debugged with `printf`. Perfected through suffering.
+**Triangles → 3× `drawLine`**
+Three vertices, three edges.
 
 ---
 
-*"The art of programming is the art of organizing complexity."*
-*— Edsger W. Dijkstra*
+## Internal Structure
+
+```c
+typedef struct {
+    int type;       // 1=Line 2=Rect 3=Circle 4=Triangle
+    int params[6];  // coordinates (shape-dependent)
+} Shape;
+
+Shape objects[MAX_OBJECTS];  // stores up to 100 shapes
+int objectCount = 0;
+```
+
+`renderAll()` iterates this array and redraws everything onto a freshly cleared canvas each time Display is called. This is a simple **retained mode** graphics model — the same concept used in modern UI frameworks like React or SwiftUI, just with `*` characters.
+
+---
+
+## Project Info
+
+Built for **REVA University** — CS Advanced C Programming, Mini Project (ISE A/B).
+Submitted via VPL (Virtual Programming Lab).
+
+Written in C. No external libraries. No build system.
+Just `gcc`, a terminal, and Bresenham.
+
+---
+
+*"First, solve the problem. Then, write the code."*
+*— John Johnson*
