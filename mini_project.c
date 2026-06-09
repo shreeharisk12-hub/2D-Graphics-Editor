@@ -239,5 +239,14 @@ int main() {
                             p[0],p[1],p[2],p[3],p[4],p[5]); break;
                 }
             }
+} else if (choice == 0) {
+            printf("Goodbye.\n");
+            break;
+        } else {
+            printf("Invalid choice.\n");
+        }
+    }
+    return 0;
+}
 
         
