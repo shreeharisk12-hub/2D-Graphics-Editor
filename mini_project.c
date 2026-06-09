@@ -240,12 +240,4 @@ int main() {
                 }
             }
 
-        } else if (choice == 0) {
-            printf("Goodbye.\n");
-            break;
-        } else {
-            printf("Invalid choice.\n");
-        }
-    }
-    return 0;
-}
+        
