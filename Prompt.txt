@@ -1,0 +1,73 @@
+
+
+
+
+prompt1: 
+
+
+
+   Problem Statement:
+Write a menu driven program for a 2d graphics editor in C using * and  _.
+
+
+
+ 
+
+
+
+Write functions to draw objects: circle, rectangle, line, and
+triangle.
+
+
+
+Use a 2d array of characters to store the picture.
+
+
+
+ 
+
+
+
+prompt2:
+
+
+
+    Improve the way we
+delete objects from canvas
+
+
+
+ 
+
+
+
+Prompt3:
+
+
+
+    add objects to the
+picture,
+
+      delete objects from the picture.
+
+ 
+
+
+
+ 
+
+
+
+prompt4:
+
+
+
+    rewrite the entire
+code with proper indentation and comments.
+
+
+
+ 
+
+
+
